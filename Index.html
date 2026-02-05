@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>SEOUL 2026 | 開心的家</title>
+    
+    <!-- PWA & Mobile Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- Icons (Uses a generic travel icon for demonstration) -->
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/201/201623.png">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/201/201623.png">
+
+    <!-- Embedded Manifest for Android PWA -->
+    <link rel="manifest" href='data:application/manifest+json;base64,ewogICJuYW1lIjogIumWi+W/g+eahOWuIiIsCiAgInNob3J0X25hbWUiOiAiU2VvdWwyMDI2IiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmZmZmZmYiLAogICJ0aGVtZV9jb2xvciIjogIiNmZmZmZmYiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJodHRwczovL2Nkbi1pY29ucy1wbmcuZmxhdGljb24uY29tLzUxMi8yMDEvMjAxNjIzLnBuZyIsCiAgICAgICJzaXplcyI6ICIxOTJ4MTkyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvcG5nIgogICAgfQogIF0KfQ=='>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "lucide-react": "https://esm.sh/lucide-react@0.330.0"
+      }
+    }
+    </script>
+
+    <style>
+        body { 
+            font-family: 'Noto Sans HK', sans-serif; 
+            background-color: #FAFAFA; 
+            color: #171717; 
+            -webkit-font-smoothing: antialiased; 
+            /* Safe Area for iPhone X+ */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .glass-dark { background: rgba(23, 23, 23, 0.9); backdrop-filter: blur(12px); color: white; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        .animate-scale-in { animation: scaleIn 0.3s ease-out forwards; }
+
+        /* --- FIXED PRINT STYLES --- */
+        @media print {
+            @page { margin: 0.5cm; size: A4; }
+            body { 
+                background-color: white; 
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important; 
+                font-size: 8pt; 
+            }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .page-break-before { page-break-before: always; }
+            .avoid-break { break-inside: avoid; page-break-inside: avoid; }
+            .print-cols-2 { column-count: 2; column-gap: 1cm; width: 100%; }
+            * { box-shadow: none !important; text-shadow: none !important; }
+            .print-tight-y { margin-top: 0 !important; margin-bottom: 0 !important; padding-top: 1px !important; padding-bottom: 1px !important; }
+            .print-border { border: 1px solid #ddd !important; }
+        }
+        .print-only { display: none; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect, useRef } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { 
+            Plane, Calendar, ShoppingBag, Camera, Thermometer, Briefcase, 
+            Utensils, Heart, Menu, X, Bus, CheckCircle, AlertTriangle, 
+            UserPlus, BedDouble, Home, Clock, ExternalLink, Map, Languages, 
+            Ticket, MapPin, Shirt, Plug, Pill, FileText, Share2, ChevronRight,
+            ArrowDown, Star, ArrowUp, Printer, CheckSquare, Globe, Wallet, Umbrella, Droplets, Snowflake,
+            Download, Smartphone
+        } from 'lucide-react';
+
+        // --- TRANSLATION DATA ---
+        const dictionary = {
+            zh: {
+                appTitle: "開心的家",
+                tripTitle: "首爾之旅 2026",
+                tripDate: "2026年 2月14日 - 2月22日",
+                duration: "9日8夜",
+                weather: "-5°C 寒冷",
+                tabs: { itinerary: "行程", flights: "機票", hotel: "住宿", prep: "準備" },
+                print: "打印 PDF",
+                share: "分享行程",
+                install: "安裝 App",
+                showAddress: "顯示地址",
+                showDriver: "請出示給司機看 (Show to Driver)",
+                close: "關閉 (Close)",
+                highlight: "重點",
+                booking: { book: "需預約", queue: "需排隊", free: "直接入場" },
+                urgent: "緊急提示",
+                urgentText: "回程機 13:45 起飛，請務必於 11:45 前抵達機場。建議早上 10:00 就要在酒店門口上巴士。",
+                subway: "地鐵",
+                bus: "機場巴士",
+                rooms: "房號分配",
+                room: "房",
+                checklistData: {
+                    docs: { title: "必備文件", items: ["護照 (檢查有效期)", "電子機票 (PDF)", "酒店確認單", "旅遊保險單", "K-ETA (如需要)", "身份證/護照副本"] },
+                    clothes: { title: "衣物 (洋蔥式)", items: ["長版羽絨 (Long Padding)", "發熱衣 (Heattech) x3", "衛衣/冷衫 (方便穿脫)", "防風褲/加絨褲", "羊毛襪 (厚)", "防滑舒適鞋", "冷帽 & 圍巾", "手套 (可觸控螢幕)", "睡衣/居家服 (薄)"] },
+                    electronics: { title: "電子用品", items: ["轉插頭 (兩腳圓形)", "外置充電器 (大容量)", "SIM卡 / WiFi蛋", "充電線 (多帶)", "相機/記憶卡"] },
+                    meds: { title: "藥品 & 個人護理", items: ["感冒藥/必理痛", "腸胃藥/止痛藥", "膠布", "個人長期藥物", "極潤保濕 Cream", "護手霜/潤唇膏", "牙刷牙膏 (酒店未必有)", "保溫壺"] },
+                    misc: { title: "雜項 & 錢財", items: ["T-Money 卡", "韓圜現金", "信用卡 (海外簽賬)", "暖包 (暖貼)", "縮骨遮/雨褸", "環保袋", "泳衣 (Aqua Field)"] }
+                },
+                avgTemp: "平均氣溫",
+                plugType: "兩腳圓形",
+                today: "今日 TODAY"
+            },
+            en: {
+                appTitle: "Happy Family",
+                tripTitle: "Seoul Trip 2026",
+                tripDate: "Feb 14 - Feb 22, 2026",
+                duration: "9 Days 8 Nights",
+                weather: "-5°C Cold",
+                tabs: { itinerary: "Itinerary", flights: "Flights", hotel: "Hotel", prep: "Prep" },
+                print: "Print PDF",
+                share: "Share",
+                install: "Install App",
+                showAddress: "Show Address",
+                showDriver: "Show to Driver",
+                close: "Close",
+                highlight: "Highlight",
+                booking: { book: "Booking", queue: "Queue", free: "Walk-in" },
+                urgent: "Urgent Notice",
+                urgentText: "Return flight departs at 13:45. You MUST arrive at airport by 11:45. Suggest taking bus at 10:00 AM.",
+                subway: "Subway",
+                bus: "Airport Bus",
+                rooms: "Room Allocation",
+                room: "Room",
+                checklistData: {
+                    docs: { title: "Documents", items: ["Passport (Check Expiry)", "E-Ticket (PDF)", "Hotel Voucher", "Travel Insurance", "K-ETA (If needed)", "ID/Passport Copies"] },
+                    clothes: { title: "Clothing", items: ["Long Padding", "Heattech x3", "Sweatshirt", "Windproof Pants", "Wool Socks", "Non-slip Shoes", "Beanie/Scarf", "Touch Gloves", "Light PJ (Heated Floor)"] },
+                    electronics: { title: "Electronics", items: ["Adapter (Type F)", "Power Bank", "SIM/WiFi", "Cables", "Camera"] },
+                    meds: { title: "Care", items: ["Meds", "Band-aids", "Moisturizer", "Lip Balm", "Toothbrush", "Thermo Flask"] },
+                    misc: { title: "Misc", items: ["T-Money", "Cash (KRW)", "Credit Card", "Heat Packs", "Umbrella", "Eco Bag", "Swimsuit"] }
+                },
+                avgTemp: "Avg Temp",
+                plugType: "Type F (2-Pin)",
+                today: "TODAY"
+            }
+        };
+
+        // --- Utility: Safe Color Mapping ---
+        const getColorClass = (color, type) => {
+            const maps = {
+                blue: { bg: 'bg-blue-50', text: 'text-blue-600', ring: 'ring-blue-50', border: 'border-blue-100', bar: 'bg-blue-500', icon: 'text-blue-500' },
+                green: { bg: 'bg-green-50', text: 'text-green-600', ring: 'ring-green-50', border: 'border-green-100', bar: 'bg-green-500', icon: 'text-green-500' },
+                purple: { bg: 'bg-purple-50', text: 'text-purple-600', ring: 'ring-purple-50', border: 'border-purple-100', bar: 'bg-purple-500', icon: 'text-purple-500' },
+                red: { bg: 'bg-red-50', text: 'text-red-600', ring: 'ring-red-50', border: 'border-red-100', bar: 'bg-red-500', icon: 'text-red-500' },
+                yellow: { bg: 'bg-yellow-50', text: 'text-yellow-600', ring: 'ring-yellow-50', border: 'border-yellow-100', bar: 'bg-yellow-500', icon: 'text-yellow-500' },
+                orange: { bg: 'bg-orange-50', text: 'text-orange-600', ring: 'ring-orange-50', border: 'border-orange-100', bar: 'bg-orange-500', icon: 'text-orange-500' },
+            };
+            return maps[color]?.[type] || '';
+        };
+
+        // --- COMPONENTS ---
+
+        const InstallModal = ({ onClose, platform }) => (
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 animate-fade-in no-print" onClick={onClose}>
+                <div className="absolute inset-0 bg-black/90 backdrop-blur-sm"></div>
+                <div className="bg-white w-full max-w-sm relative z-10 overflow-hidden shadow-2xl rounded-3xl p-6 animate-scale-in" onClick={e => e.stopPropagation()}>
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-xl font-black">加入主畫面</h3>
+                        <button onClick={onClose} className="p-1 bg-gray-100 rounded-full"><X size={20}/></button>
+                    </div>
+                    
+                    {platform === 'ios' ? (
+                        <div className="space-y-4 text-center">
+                            <p className="text-gray-600">在 iPhone 上，請跟隨以下步驟：</p>
+                            <div className="bg-gray-50 p-4 rounded-xl text-left space-y-2 text-sm">
+                                <div className="flex items-center"><Share2 size={16} className="mr-2 text-blue-500"/> 1. 點擊瀏覽器底部的 <strong>「分享」</strong> 按鈕</div>
+                                <div className="flex items-center"><CheckSquare size={16} className="mr-2 text-gray-500"/> 2. 往下滑動找到 <strong>「加入主畫面」</strong></div>
+                                <div className="flex items-center"><UserPlus size={16} className="mr-2 text-gray-500"/> 3. 點擊右上角的 <strong>「新增」</strong></div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-4 text-center">
+                            <p className="text-gray-600">在 Android / Chrome 上：</p>
+                            <div className="bg-gray-50 p-4 rounded-xl text-left space-y-2 text-sm">
+                                <div className="flex items-center"><Menu size={16} className="mr-2 text-gray-500"/> 1. 點擊瀏覽器右上角的 <strong>選單 (三點)</strong></div>
+                                <div className="flex items-center"><Smartphone size={16} className="mr-2 text-blue-500"/> 2. 選擇 <strong>「安裝應用程式」</strong> 或 <strong>「加到主畫面」</strong></div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    <button onClick={onClose} className="w-full mt-6 py-3 bg-blue-600 text-white rounded-xl font-bold">明白！</button>
+                </div>
+            </div>
+        );
+
+        const KoreanOverlay = ({ koreanText, name, subText, onClose, lang }) => (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-fade-in no-print" onClick={onClose}>
+                <div className="absolute inset-0 bg-black/90 backdrop-blur-sm"></div>
+                <div className="bg-white w-full max-w-sm relative z-10 overflow-hidden shadow-2xl animate-scale-in" style={{borderRadius: '24px'}} onClick={e => e.stopPropagation()}>
+                    <div className="bg-yellow-400 p-4 text-center relative">
+                        <button onClick={onClose} className="absolute right-4 top-1/2 -translate-y-1/2 p-1 bg-black/10 rounded-full hover:bg-black/20 text-black/60"><X size={16}/></button>
+                        <h4 className="text-black font-black text-xs uppercase tracking-[0.2em]">{dictionary[lang].showDriver}</h4>
+                        <div className="text-[10px] font-bold text-black/60 mt-1">기사님께 보여주세요</div>
+                    </div>
+                    <div className="p-8 text-center">
+                        <div className="text-4xl font-black text-gray-900 mb-6 leading-snug break-keep select-all">
+                            {koreanText}
+                        </div>
+                        {subText && (
+                            <div className="text-lg text-gray-500 font-medium mb-8 bg-gray-50 p-4 rounded-xl break-keep border border-gray-100">
+                                {subText}
+                            </div>
+                        )}
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-8">{name}</p>
+                        <button onClick={onClose} className="w-full py-4 bg-black text-white rounded-xl font-bold text-lg hover:scale-[0.98] transition-transform active:bg-gray-800">
+                            {dictionary[lang].close}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const TimelineItem = ({ time, place, desc, highlight, tags, mapTerm, korean, bookingType, isLast, onShowKorean, onOpenMap, onOpenImage, lang }) => (
+            <div className="flex group avoid-break mb-4 print:mb-2">
+                <div className="w-14 flex-shrink-0 flex flex-col items-center pt-1 print:w-10">
+                    <span className="text-xs font-bold text-gray-900 print:text-[8pt]">{time}</span>
+                    {!isLast && <div className="w-px h-full bg-gray-200 mt-1 group-hover:bg-gray-300 transition-colors print:border-l print:border-gray-200 print:bg-transparent"></div>}
+                </div>
+                
+                <div className="flex-1 pb-4 print:pb-1">
+                    <div className={`relative p-4 rounded-2xl transition-all duration-300 border ${highlight ? 'bg-black text-white border-black shadow-lg shadow-gray-200 print:bg-gray-50 print:text-black print:border-gray-300' : 'bg-white border-gray-100 shadow-sm hover:shadow-md print:border-gray-200 print:shadow-none'}`}>
+                        
+                        {highlight && <div className="absolute -top-3 -right-3 bg-yellow-400 text-black text-[10px] font-black px-2 py-1 rounded shadow-sm rotate-3 print:border print:border-black print:text-[7pt] print:py-0.5">{dictionary[lang].highlight}</div>}
+
+                        <div className="flex justify-between items-start mb-1">
+                            <h4 className={`text-base font-bold leading-tight print:text-sm ${highlight ? 'text-white print:text-black' : 'text-gray-900'}`}>{place}</h4>
+                            <div className="flex gap-1.5 no-print">
+                                {korean && <button onClick={(e) => { e.stopPropagation(); onShowKorean(korean, place); }} className="p-1.5 bg-gray-100 rounded-full text-gray-600 hover:bg-yellow-100 hover:text-yellow-700"><Languages size={14} /></button>}
+                                <button onClick={(e) => { e.stopPropagation(); onOpenImage(place); }} className="p-1.5 bg-gray-100 rounded-full text-gray-600 hover:bg-blue-100 hover:text-blue-700"><Camera size={14} /></button>
+                                {mapTerm && <button onClick={(e) => { e.stopPropagation(); onOpenMap(mapTerm); }} className="p-1.5 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100"><MapPin size={14} /></button>}
+                            </div>
+                        </div>
+                        
+                        <p className={`text-xs mb-2 leading-relaxed print:text-[8pt] print:mb-1 ${highlight ? 'text-gray-300 print:text-gray-600' : 'text-gray-500'}`}>{desc}</p>
+                        
+                        <div className="flex flex-wrap gap-1.5">
+                            {bookingType && (
+                                <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase border bg-gray-100 text-gray-600 border-gray-200 print:text-[7pt]`}>
+                                    {dictionary[lang].booking[bookingType]}
+                                </span>
+                            )}
+                            {tags?.map((tag, i) => (
+                                <span key={i} className="text-[9px] px-1.5 py-0.5 rounded font-bold bg-gray-50 text-gray-500 border border-gray-100 print:border-gray-300 print:text-[7pt]">#{tag}</span>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const DayCard = ({ id, day, date, title, highlights, note, onShowKorean, onOpenMap, onOpenImage, lang, isToday }) => (
+            <div id={id} className={`mb-8 print:mb-2 avoid-break transition-all duration-500 ${isToday ? 'bg-green-50/50 p-2 rounded-2xl border-l-4 border-green-500' : ''}`}>
+                <div className="flex items-end gap-3 mb-4 px-2 print:mb-1 print:border-b print:border-black print:pb-1 print:flex-row print:items-center">
+                    <div className="text-5xl font-black text-gray-200 leading-none -mb-1 print:text-black print:text-lg print:mb-0 print:mr-2 no-print">{day.replace('DAY ', 'D')}</div>
+                    <div className="print-only font-black text-lg text-black mr-2">{day.replace('DAY ', 'D')}</div>
+                    
+                    <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                            <div className="text-xs font-bold text-blue-600 uppercase tracking-widest print:text-gray-500 print:text-[8pt]">{date}</div>
+                            {isToday && <span className="bg-green-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full today-badge no-print">{dictionary[lang].today}</span>}
+                        </div>
+                        <div className="text-xl font-bold text-gray-900 print:text-sm">{title}</div>
+                    </div>
+                </div>
+
+                <div className="pl-2 print:pl-0">
+                    {highlights.map((item, idx) => (
+                        <TimelineItem key={idx} {...item} isLast={idx === highlights.length - 1} onShowKorean={onShowKorean} onOpenMap={onOpenMap} onOpenImage={onOpenImage} lang={lang} />
+                    ))}
+                </div>
+
+                {note && (
+                    <div className="ml-14 mt-[-10px] mb-6 p-3 bg-orange-50 border-l-4 border-orange-400 rounded-r-lg text-xs text-orange-800 font-medium leading-relaxed flex gap-2 print:bg-white print:border print:border-orange-400 print:mt-0 print:mb-2 print:ml-0 print:p-2 print:text-[8pt]">
+                        <AlertTriangle size={14} className="shrink-0 text-orange-500"/>
+                        {note}
+                    </div>
+                )}
+            </div>
+        );
+
+        const FlightCard = ({ type, date, flightNo, airline, time, airport, duration, color }) => {
+            const barClass = getColorClass(color, 'bar');
+            const bgClass = getColorClass(color, 'bg');
+            const textClass = getColorClass(color, 'text');
+            const iconClass = getColorClass(color, 'icon');
+
+            return (
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden mb-6 relative group print:shadow-none print:border-gray-400 print:mb-2 print:rounded-lg">
+                    <div className={`absolute top-0 left-0 w-full h-1 ${barClass} print:h-full print:w-1`}></div>
+                    <div className="p-5 print:p-2 print:pl-4">
+                        <div className="flex justify-between items-center mb-4 print:mb-1">
+                            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded ${bgClass} ${textClass} print:bg-transparent print:p-0 print:text-black`}>
+                                {type} • {date}
+                            </span>
+                            <div className="flex items-center text-gray-400 text-xs font-mono font-bold bg-gray-50 px-2 py-1 rounded print:bg-transparent print:p-0">
+                                <Clock size={12} className="mr-1.5"/>{duration}
+                            </div>
+                        </div>
+                        <div className="flex justify-between items-center relative">
+                            <div className="text-center z-10 print:text-left">
+                                <div className="text-2xl font-black text-gray-900 print:text-base">{time.depart}</div>
+                                <div className="text-[10px] font-bold text-gray-400 mt-1 print:mt-0">{airport.depart}</div>
+                            </div>
+                            <div className="flex-1 px-4 flex flex-col items-center print:px-2">
+                                <div className="text-[9px] font-bold text-gray-400 uppercase mb-1">{airline}</div>
+                                <div className="w-full h-px bg-gray-200 relative flex items-center justify-center print:hidden">
+                                    <Plane size={14} className={`${iconClass} bg-white px-1`} />
+                                </div>
+                                <div className="hidden print:block text-xs text-gray-300">→</div>
+                                <div className="text-xs font-black text-gray-900 mt-1">{flightNo}</div>
+                            </div>
+                            <div className="text-center z-10 print:text-right">
+                                <div className="text-2xl font-black text-gray-900 print:text-base">{time.arrive}</div>
+                                <div className="text-[10px] font-bold text-gray-400 mt-1 print:mt-0">{airport.arrive}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const RoomCard = ({ roomName, members, color, lang }) => {
+            const bgClass = getColorClass(color, 'bg');
+            const textClass = getColorClass(color, 'text');
+            return (
+                <div className="bg-white border border-gray-100 p-4 rounded-xl flex items-center justify-between mb-2 shadow-sm print:border-gray-300 print:shadow-none print:p-2 print:rounded-lg">
+                    <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${bgClass} ${textClass} print:bg-gray-100 print:text-black print:w-6 print:h-6`}>
+                            <UserPlus size={16} className="print:w-3 print:h-3" />
+                        </div>
+                        <div>
+                            <div className="font-bold text-gray-900 text-sm print:text-xs">{dictionary[lang].room} {roomName.replace(/[^0-9]/g, '')}</div>
+                            <div className="text-xs text-gray-500 font-medium print:text-[9pt]">{members}</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const ChecklistGroup = ({ title, items, color, category, checkedItems, onToggle }) => {
+            // Count checked items based on category + index to persist across language changes
+            const checkedCount = items.filter((_, i) => checkedItems[`${category}_${i}`]).length;
+            const borderClass = getColorClass(color, 'border');
+            const bgClass = getColorClass(color, 'bg');
+
+            return (
+                <div className="mb-6 avoid-break print:mb-4">
+                    <div className="flex justify-between items-end mb-2 px-1">
+                        <h3 className={`font-black text-sm text-gray-900 flex items-center print:text-xs`}>{title}</h3>
+                        <span className="text-[10px] font-bold text-gray-400 no-print">{checkedCount}/{items.length}</span>
+                    </div>
+                    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm print:border-gray-300 print:shadow-none print:rounded-lg">
+                        {items.map((item, i) => {
+                            const isChecked = checkedItems[`${category}_${i}`];
+                            return (
+                                <div key={i} onClick={() => onToggle(category, i)} className="p-3 flex items-center gap-3 border-b border-gray-50 last:border-0 print:border-gray-200 print:p-1.5 hover:bg-gray-50 cursor-pointer transition-all">
+                                    <div className={`w-4 h-4 border rounded-md flex items-center justify-center transition-all ${isChecked ? `bg-${color}-500 border-${color}-500` : 'border-gray-300'}`}>
+                                        {isChecked && <CheckSquare size={10} className="text-white" />}
+                                    </div>
+                                    <span className={`text-xs font-medium transition-all ${isChecked ? 'text-gray-400 line-through decoration-gray-300' : 'text-gray-700'} print:text-[8pt]`}>{item}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- SECTIONS ---
+
+        const getItineraryData = (lang) => [
+            {
+                day: "DAY 01", date: lang === 'zh' ? "2月14日 (六)" : "Feb 14 (Sat)", title: lang === 'zh' ? "抵達 & 布帳馬車" : "Arrival & Pocha", highlights: [
+                    { time: "18:25", place: lang === 'zh' ? "抵達仁川機場" : "Arrive ICN", desc: lang === 'zh' ? "Gate 5B/11B 搭車。" : "Go to Gate 5B/11B.", tags: ["Airport"] },
+                    { time: "20:00", place: lang === 'zh' ? "機場巴士 6015" : "Airport Bus 6015", desc: lang === 'zh' ? "上車拍卡 (約17,000₩)。" : "T-Money (~17,000₩).", korean: "6015번 공항버스", tags: ["Transport"], bookingType: "queue" },
+                    { time: "21:30", place: lang === 'zh' ? "紐布朗中心酒店" : "New Blanc Hotel", desc: lang === 'zh' ? "Kukdo Hotel 站落車。" : "Stop at Kukdo Hotel.", mapTerm: "New Blanc Central Myeongdong", korean: "뉴 블랑 센트럴 명동 호텔", tags: ["Check-in"] },
+                    { time: "22:00", place: lang === 'zh' ? "鐘路三街布帳馬車" : "Jongno Pocha", desc: lang === 'zh' ? "附近地道大排檔晚餐。" : "Street food stalls dinner.", mapTerm: "Jongno 3-ga Pocha Street", korean: "종로3가 포장마차거리", tags: ["Food"], highlight: true, bookingType: "walk-in" }
+                ], note: lang === 'zh' ? "今日舟車勞頓，食完宵夜早啲休息。" : "Long travel day. Rest early."
+            },
+            {
+                day: "DAY 02", date: lang === 'zh' ? "2月15日 (日)" : "Feb 15 (Sun)", title: lang === 'zh' ? "江南 & 汗蒸幕" : "Gangnam & Spa", highlights: [
+                    { time: "10:00", place: lang === 'zh' ? "星空圖書館" : "Starfield Library", desc: lang === 'zh' ? "COEX Mall 打卡 (三成站)。" : "COEX Mall photo spot.", mapTerm: "Starfield Library", korean: "별마당 도서관", tags: ["Photo"], bookingType: "free" },
+                    { time: "12:30", place: lang === 'zh' ? "午餐: 黑虎狼" : "Lunch: Heukhorang", desc: lang === 'zh' ? "墨西哥風味碳烤雞腿。" : "Mexican Chicken.", korean: "흑호랑", tags: ["Food"], bookingType: "queue" },
+                    { time: "13:30", place: lang === 'zh' ? "Seoul Sky" : "Seoul Sky", desc: lang === 'zh' ? "樂天塔高空景觀 (蠶室站)。" : "Lotte Tower View.", mapTerm: "Lotte World Tower", korean: "서울스카이", tags: ["View"], bookingType: "book", highlight: true },
+                    { time: "18:00", place: lang === 'zh' ? "Dragon Hill Spa" : "Dragon Hill Spa", desc: lang === 'zh' ? "龍山站汗蒸幕體驗 (備案: Siloam)。" : "Jjimjilbang at Yongsan.", mapTerm: "Dragon Hill Spa", korean: "드래곤힐스파", tags: ["Relax"], bookingType: "walk-in" },
+                    { time: "20:30", place: lang === 'zh' ? "荒謬的生肉" : "Ungteori BBQ", desc: lang === 'zh' ? "明洞無限任食五花肉。" : "AYCE Pork Belly Myeongdong.", mapTerm: "Ungteori Saenggogi Myeongdong", korean: "엉터리생고기 명동점", tags: ["Food"] },
+                    { time: "22:00", place: lang === 'zh' ? "Olive Young/CU" : "Olive Young/CU", desc: lang === 'zh' ? "買 Mask 試用。" : "Buy masks.", tags: ["Shop"] }
+                ]
+            },
+            {
+                day: "DAY 03", date: lang === 'zh' ? "2月16日 (一)" : "Feb 16 (Mon)", title: lang === 'zh' ? "韓服 & 景福宮" : "Hanbok & Palace", highlights: [
+                    { time: "08:30", place: lang === 'zh' ? "租韓服" : "Rent Hanbok", desc: lang === 'zh' ? "需預訂。穿韓服免費入宮。" : "Booked. Free palace entry.", mapTerm: "Hanboknam Gyeongbokgung", tags: ["Activity"], bookingType: "book" },
+                    { time: "09:30", place: lang === 'zh' ? "景福宮" : "Gyeongbokgung", desc: lang === 'zh' ? "參觀古宮，影靚相。" : "Main Palace tour.", mapTerm: "Gyeongbokgung Palace", korean: "경복궁", tags: ["Culture"], bookingType: "free" },
+                    { time: "11:30", place: lang === 'zh' ? "午餐: 新羅製麵" : "Silla Jemyeon", desc: lang === 'zh' ? "辣章魚/蛤蜊刀削麵。" : "Spicy Octopus Noodles.", mapTerm: "Silla Jemyeon", korean: "신라제면", tags: ["Food"], bookingType: "queue" },
+                    { time: "13:30", place: lang === 'zh' ? "西村文創" : "Seochon", desc: lang === 'zh' ? "文創店/展覽/Cafe。" : "Artsy street & cafes.", mapTerm: "Seochon Village", korean: "서촌마을", tags: ["Walk"] },
+                    { time: "16:00", place: lang === 'zh' ? "London Bagel" : "London Bagel", desc: lang === 'zh' ? "安國店。需提早拿籌外賣。" : "Famous Bagels (Takeout).", mapTerm: "London Bagel Museum Anguk", korean: "런던베이글뮤지엄 안국점", tags: ["Snack"], highlight: true },
+                    { time: "19:00", place: lang === 'zh' ? "晚餐: 無垢屋" : "Mugunghwa", desc: lang === 'zh' ? "人蔘雞湯/魷魚雞肉。" : "Ginseng Chicken Soup.", tags: ["Food"] }
+                ]
+            },
+            {
+                day: "DAY 04", date: lang === 'zh' ? "2月17日 (二)" : "Feb 17 (Tue)", title: lang === 'zh' ? "🧧 年初一明洞" : "🧧 Seollal Myeongdong", highlights: [
+                    { time: "10:30", place: lang === 'zh' ? "Sparex 東大門" : "Sparex", desc: lang === 'zh' ? "汗蒸幕休息。" : "Sauna rest.", mapTerm: "Sparex Dongdaemun", korean: "스파렉스", tags: ["Relax"] },
+                    { time: "13:00", place: lang === 'zh' ? "風川鰻魚" : "Eel Lunch", desc: lang === 'zh' ? "乙支路3街 (備案: 連鎖店/酒店附近)。" : "Grilled Eel (Backup available).", mapTerm: "Pungcheon Eel", korean: "황소풍천민물장어", tags: ["Food"], bookingType: "queue" },
+                    { time: "15:00", place: lang === 'zh' ? "明洞實彈射擊" : "Shooting", desc: lang === 'zh' ? "需預訂。" : "Real gun shooting.", mapTerm: "Myeongdong Shooting Range", korean: "명동실탄사격장", tags: ["Play"], bookingType: "book" },
+                    { time: "16:00", place: lang === 'zh' ? "明洞逛街" : "Shopping", desc: lang === 'zh' ? "EPT, NyuNyu, Marithe, Covernat。" : "Brand Shopping.", mapTerm: "Myeongdong", tags: ["Shop"] },
+                    { time: "19:00", place: lang === 'zh' ? "晚餐: 王妃家" : "Wangbijib", desc: lang === 'zh' ? "明洞著名燒肉。備案: 明洞餃子。" : "Premium BBQ.", mapTerm: "Wangbijib Myeongdong Main Store", korean: "왕비집 명동본점", tags: ["Food"], highlight: true }
+                ], note: lang === 'zh' ? "年初一很多店休，建議去明洞遊客區。" : "CNY Day 1. Myeongdong is safest option."
+            },
+            {
+                day: "DAY 05", date: lang === 'zh' ? "2月18日 (三)" : "Feb 18 (Wed)", title: lang === 'zh' ? "弘大攝影日" : "Hongdae Photo", highlights: [
+                    { time: "11:00", place: lang === 'zh' ? "Reverie Black" : "Reverie Black", desc: lang === 'zh' ? "家庭照拍攝 (需DM預約)。" : "Family Photo Shoot.", mapTerm: "Reverie Black", korean: "레버리블랙", tags: ["Photo"], bookingType: "book", highlight: true },
+                    { time: "13:00", place: lang === 'zh' ? "Hotel De GGOODD" : "Hotel De GGOODD", desc: lang === 'zh' ? "延南洞午餐意粉。" : "Pasta Lunch.", mapTerm: "Hotel De GGOODD", korean: "호텔드구뜨", tags: ["Food"] },
+                    { time: "15:00", place: lang === 'zh' ? "弘大逛街" : "Hongdae Walk", desc: lang === 'zh' ? "Loof, 拍貼機 (Pixx)。" : "Shopping & Photo booths.", tags: ["Fun"] },
+                    { time: "19:00", place: lang === 'zh' ? "晚餐 4選1" : "Dinner Choice", desc: lang === 'zh' ? "橋村炸雞 / 水芹菜烤肉 / 小豬存錢筒 / Taecho Beef。" : "Chicken / BBQ / Beef.", tags: ["Food"] },
+                    { time: "21:00", place: lang === 'zh' ? "洗衣" : "Laundry", desc: lang === 'zh' ? "回酒店洗衣。" : "Laundry time.", tags: ["Task"] }
+                ]
+            },
+            {
+                day: "DAY 06", date: lang === 'zh' ? "2月19日 (四)" : "Feb 19 (Thu)", title: lang === 'zh' ? "Daisy 加入 & 聖水" : "Daisy & Seongsu", highlights: [
+                    { time: "09:30", place: lang === 'zh' ? "家人出發" : "Family Departs", desc: lang === 'zh' ? "家人先去聖水洞。" : "Family goes to Seongsu.", mapTerm: "Seongsu-dong Cafe Street", korean: "성수동", tags: ["Tour"] },
+                    { time: "10:00", place: lang === 'zh' ? "Louis 留守" : "Louis Stays", desc: lang === 'zh' ? "Louis 在酒店等 Daisy。" : "Louis waits at Hotel.", tags: ["Wait"], highlight: true },
+                    { time: "11:30", place: lang === 'zh' ? "Daisy 抵達" : "Daisy @ Hotel", desc: lang === 'zh' ? "Daisy 到酒店放行李。" : "Daisy arrives Hotel.", tags: ["Arrive"] },
+                    { time: "13:30", place: lang === 'zh' ? "午餐: BUOY" : "Lunch: BUOY", desc: lang === 'zh' ? "聖水洞會合 (已預訂)。" : "Meet up (Booked).", mapTerm: "BUOY Seongsu", korean: "부이", tags: ["Food"], bookingType: "book" },
+                    { time: "15:00", place: lang === 'zh' ? "聖水洞逛街" : "Seongsu Shop", desc: lang === 'zh' ? "Dior, NyuNyu, Musina, Hetras。" : "Shopping trend spots.", mapTerm: "Dior Seongsu", tags: ["Shop"] },
+                    { time: "19:00", place: lang === 'zh' ? "Jojo Kalguksu" : "Jojo Kalguksu", desc: lang === 'zh' ? "蛤蜊刀削麵、海鮮煎餅。" : "Clam Noodles.", mapTerm: "Jojo Kalguksu Seongsu", korean: "조조칼국수 성수점", tags: ["Food"] }
+                ]
+            },
+            {
+                day: "DAY 07", date: lang === 'zh' ? "2月20日 (五)" : "Feb 20 (Fri)", title: lang === 'zh' ? "爸爸圓夢雪日" : "Snow Day!", highlights: [
+                    { time: "08:00", place: lang === 'zh' ? "包車出發" : "Private Car", desc: lang === 'zh' ? "酒店出發 (需預約包車)。" : "Depart hotel (Booked car).", tags: ["Transport"], highlight: true },
+                    { time: "09:30", place: lang === 'zh' ? "洪川 Vivaldi" : "Vivaldi Park", desc: lang === 'zh' ? "玩雪橇、雪盆 (爸爸睇雪！)。" : "Snow Sledding & Fun.", mapTerm: "Vivaldi Park Ski World", korean: "비발디파크", tags: ["Snow", "Dad's Wish"] },
+                    { time: "14:00", place: lang === 'zh' ? "魚飛溪谷" : "Eobi Valley", desc: lang === 'zh' ? "絕美冰河冰壁打卡。" : "Ice Valley photos.", mapTerm: "Eobi Valley", korean: "어비계곡", tags: ["Photo"] },
+                    { time: "16:00", place: lang === 'zh' ? "南怡島" : "Nami Island", desc: lang === 'zh' ? "冬季雪景散步。" : "Winter scenery.", mapTerm: "Nami Island", korean: "남이섬", tags: ["Scenic"] },
+                    { time: "19:30", place: lang === 'zh' ? "鐘路三街" : "Jongno 3-ga", desc: lang === 'zh' ? "回程晚餐: 布帳馬車。" : "Pocha Dinner.", tags: ["Food"] }
+                ], note: lang === 'zh' ? "重點行程！記得著最暖、防滑鞋。" : "Highlight day! Wear warmest gear."
+            },
+            {
+                day: "DAY 08", date: lang === 'zh' ? "2月21日 (六)" : "Feb 21 (Sat)", title: lang === 'zh' ? "水上樂園 & 最後衝刺" : "Aqua Field & Last Shop", highlights: [
+                    { time: "11:00", place: lang === 'zh' ? "Aqua Field 高陽" : "Aqua Field", desc: lang === 'zh' ? "室內水上樂園+汗蒸幕 (需預約)。" : "Goyang. Spa & Water Park.", mapTerm: "Aquafield Goyang", korean: "아쿠아필드 고양", tags: ["Relax", "Swim"], bookingType: "book", highlight: true },
+                    { time: "16:00", place: lang === 'zh' ? "弘大/明洞" : "Shopping", desc: lang === 'zh' ? "回市區晚餐 & 買手信藥妝。" : "Dinner & Souvenirs.", tags: ["Shop"] },
+                    { time: "19:00", place: lang === 'zh' ? "最後晚餐" : "Farewell Dinner", desc: lang === 'zh' ? "選一間未食的弘大烤肉/鰻魚。" : "BBQ or Eel.", tags: ["Food"] },
+                    { time: "22:00", place: lang === 'zh' ? "收拾行李" : "Pack Luggage", desc: lang === 'zh' ? "執行李！" : "Packing time!", tags: ["Task"] }
+                ], note: lang === 'zh' ? "Aqua Field 記得帶泳衣。高陽較遠，預留交通時間。" : "Bring swimsuit. Goyang is far."
+            },
+            {
+                day: "DAY 09", date: lang === 'zh' ? "2月22日 (日)" : "Feb 22 (Sun)", title: lang === 'zh' ? "再見首爾" : "Bye Seoul", highlights: [
+                    { time: "09:30", place: lang === 'zh' ? "Check-out" : "Check-out", desc: lang === 'zh' ? "檢查護照。" : "Check passports.", tags: ["Hotel"] },
+                    { time: "10:00", place: lang === 'zh' ? "巴士 6015" : "Bus 6015", desc: lang === 'zh' ? "早點去機場。" : "Go to airport.", korean: "국도호텔 공항버스", tags: ["Transport"], highlight: true },
+                    { time: "13:45", place: lang === 'zh' ? "CX453 起飛" : "CX453 Departs", desc: lang === 'zh' ? "返香港。" : "Back to HK.", tags: ["Flight"] }
+                ]
+            }
+        ];
+
+        const ItinerarySection = ({ handlers, lang }) => {
+            const [currentDayIndex, setCurrentDayIndex] = useState(-1);
+
+            useEffect(() => {
+                const today = new Date();
+                // DEBUG: Uncomment to test a specific date
+                // const today = new Date('2026-02-20T10:00:00'); 
+
+                const tripStart = new Date('2026-02-14T00:00:00');
+                
+                // Calculate difference in time
+                const diffTime = today.getTime() - tripStart.getTime();
+                
+                // Calculate difference in days. 
+                // We use Math.floor to get 0 for Day 1, 1 for Day 2, etc.
+                const diffDays = Math.floor(diffTime / (1000 * 3600 * 24));
+
+                if (diffDays >= 0 && diffDays < 9) {
+                    setCurrentDayIndex(diffDays);
+                    
+                    // Delay scrolling slightly to ensure DOM is ready
+                    setTimeout(() => {
+                        const element = document.getElementById(`day-${diffDays}`);
+                        if (element) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 500);
+                }
+            }, []);
+
+            return (
+                <>
+                    {getItineraryData(lang).map((day, index) => (
+                        <DayCard 
+                            key={index} 
+                            id={`day-${index}`} 
+                            {...day} 
+                            {...handlers} 
+                            lang={lang} 
+                            isToday={index === currentDayIndex} 
+                        />
+                    ))}
+                </>
+            );
+        };
+
+        const FlightsSection = ({ isPrint, lang }) => (
+            <>
+                <FlightCard type={lang === 'zh' ? "去程" : "DEPART"} date={lang === 'zh' ? "2月14日" : "Feb 14"} flightNo="7C6022" airline="JEJU AIR" time={{depart:"13:55", arrive:"18:25"}} airport={{depart:"HKG T1", arrive:"ICN T1"}} duration="3h 30m" color="blue" />
+                <FlightCard type={lang === 'zh' ? "回程" : "RETURN"} date={lang === 'zh' ? "2月22日" : "Feb 22"} flightNo="CX453" airline="CATHAY" time={{depart:"13:45", arrive:"17:00"}} airport={{depart:"ICN T1", arrive:"HKG T1"}} duration="4h 15m" color="green" />
+                <div className="p-4 bg-red-50 rounded-xl border border-red-100 mt-4 print:border-red-400 print:p-2">
+                    <div className="flex items-center gap-2 text-red-600 font-bold mb-1 text-xs"><AlertTriangle size={16}/> {dictionary[lang].urgent}</div>
+                    <p className="text-red-800 text-xs leading-relaxed">{dictionary[lang].urgentText}</p>
+                </div>
+            </>
+        );
+
+        const HotelSection = ({ setShowKorean, isPrint, lang }) => (
+            <>
+                <div className={`relative rounded-2xl overflow-hidden bg-gray-900 text-white shadow-2xl mb-4 print:shadow-none print:bg-white print:text-black print:border print:border-gray-300 ${isPrint ? '' : 'h-32'}`}>
+                    { !isPrint && <img src="https://images.unsplash.com/photo-1596436807771-7a342b4d9039?q=80&w=1000&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover opacity-60" /> }
+                    <div className={`relative ${isPrint ? 'p-4' : 'p-6 flex flex-col justify-center h-full'}`}>
+                        <h2 className="text-xl font-black leading-none mb-1">New Blanc Central</h2>
+                        <p className="text-gray-300 font-medium mb-0 text-xs print:text-gray-600">New Blanc Central Myeongdong</p>
+                        <p className="hidden print:block text-[10px] text-gray-500 mt-2">서울 중구 창경궁로 20</p>
+                        { !isPrint && <button onClick={() => setShowKorean({ kr: "뉴 블랑 센트럴 명동 호텔", name: "New Blanc Central Hotel", subText: "서울 중구 창경궁로 20" })} className="absolute bottom-4 right-4 bg-white text-black px-3 py-1 rounded-lg font-bold text-xs flex items-center hover:scale-105 transition-transform no-print">
+                            <Languages size={14} className="mr-1"/> {dictionary[lang].showAddress}
+                        </button> }
+                    </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                    <div className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm print:border-gray-300">
+                        <div className="text-gray-400 text-[10px] font-bold uppercase">{dictionary[lang].subway}</div>
+                        <div className="font-bold text-gray-900 text-sm">Euljiro 4-ga</div>
+                        <div className="text-[10px] text-blue-600 font-bold">Exit 10</div>
+                    </div>
+                    <div className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm print:border-gray-300">
+                        <div className="text-gray-400 text-[10px] font-bold uppercase">{dictionary[lang].bus}</div>
+                        <div className="font-bold text-gray-900 text-sm">6015</div>
+                        <div className="text-[10px] text-green-600 font-bold">Kukdo Hotel</div>
+                    </div>
+                </div>
+                <h3 className="font-black text-sm mb-2 px-1">{dictionary[lang].rooms}</h3>
+                <RoomCard roomName="1" members="Louis + Daisy" color="blue" lang={lang} />
+                <RoomCard roomName="2" members="Dad & Mum" color="red" lang={lang} />
+                <RoomCard roomName="3" members="Sisters" color="purple" lang={lang} />
+            </>
+        );
+
+        const PrepSection = ({ checkedItems, toggleCheck, isPrint, lang }) => (
+            <>
+                <div className={`flex gap-4 mb-8 overflow-x-auto no-scrollbar pb-2 no-print ${isPrint ? 'hidden' : ''}`}>
+                    <div className="bg-black text-white p-5 rounded-2xl min-w-[140px] flex flex-col justify-between h-32 shadow-lg">
+                        <Thermometer className="text-blue-400" />
+                        <div>
+                            <div className="text-3xl font-black">-5°</div>
+                            <div className="text-[10px] font-bold text-gray-400 uppercase">{dictionary[lang].avgTemp}</div>
+                        </div>
+                    </div>
+                    <div className="bg-white p-5 rounded-2xl min-w-[140px] flex flex-col justify-between h-32 border border-gray-100 shadow-sm">
+                        <Plug className="text-yellow-500" />
+                        <div>
+                            <div className="text-xl font-black">Type F</div>
+                            <div className="text-[10px] font-bold text-gray-400 uppercase">{dictionary[lang].plugType}</div>
+                        </div>
+                    </div>
+                </div>
+                <ChecklistGroup title={dictionary[lang].checklistData.docs.title} items={dictionary[lang].checklistData.docs.items} color="blue" category="docs" checkedItems={checkedItems || {}} onToggle={toggleCheck} />
+                <ChecklistGroup title={dictionary[lang].checklistData.clothes.title} items={dictionary[lang].checklistData.clothes.items} color="purple" category="clothes" checkedItems={checkedItems || {}} onToggle={toggleCheck} />
+                <ChecklistGroup title={dictionary[lang].checklistData.electronics.title} items={dictionary[lang].checklistData.electronics.items} color="yellow" category="electronics" checkedItems={checkedItems || {}} onToggle={toggleCheck} />
+                <ChecklistGroup title={dictionary[lang].checklistData.meds.title} items={dictionary[lang].checklistData.meds.items} color="red" category="meds" checkedItems={checkedItems || {}} onToggle={toggleCheck} />
+                <ChecklistGroup title={dictionary[lang].checklistData.misc.title} items={dictionary[lang].checklistData.misc.items} color="green" category="misc" checkedItems={checkedItems || {}} onToggle={toggleCheck} />
+            </>
+        );
+
+        const SeoulTrip2026 = () => {
+            const [activeTab, setActiveTab] = useState('itinerary');
+            const [isMenuOpen, setIsMenuOpen] = useState(false);
+            const [scrolled, setScrolled] = useState(false);
+            const [showKorean, setShowKorean] = useState(null);
+            const [showInstallModal, setShowInstallModal] = useState(false);
+            const [installPrompt, setInstallPrompt] = useState(null);
+            const [lang, setLang] = useState('zh'); // Default Language
+            
+            const [checkedItems, setCheckedItems] = useState(() => {
+                try {
+                    const saved = localStorage.getItem('seoulTripChecklist_v2');
+                    return saved ? JSON.parse(saved) : {};
+                } catch (e) { return {}; }
+            });
+
+            useEffect(() => {
+                try { localStorage.setItem('seoulTripChecklist_v2', JSON.stringify(checkedItems)); } catch (e) {}
+            }, [checkedItems]);
+
+            useEffect(() => {
+                const handleScroll = () => setScrolled(window.scrollY > 10);
+                window.addEventListener('scroll', handleScroll);
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    setInstallPrompt(e);
+                });
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            useEffect(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, [activeTab]);
+
+            const toggleCheck = (category, index) => {
+                const key = `${category}_${index}`;
+                setCheckedItems(prev => ({ ...prev, [key]: !prev[key] }));
+            };
+
+            const toggleLang = () => {
+                setLang(prev => prev === 'zh' ? 'en' : 'zh');
+            };
+
+            const openMap = (query) => window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+            const openImages = (query) => window.open(`https://www.google.com/search?tbm=isch&q=${query}`, '_blank');
+            const handleShowKorean = (kr, name, sub) => setShowKorean({ kr, name, subText: sub });
+            
+            const handleShare = async () => {
+                if (navigator.share) {
+                    try { await navigator.share({ title: 'Seoul Trip 2026', url: window.location.href }); } catch (error) {}
+                } else {
+                    try {
+                        await navigator.clipboard.writeText(window.location.href);
+                        alert('Link copied!');
+                    } catch (err) {
+                        alert('Copy Link Failed');
+                    }
+                }
+            };
+
+            const handleInstall = () => {
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                if (isIOS) {
+                    setShowInstallModal('ios');
+                } else if (installPrompt) {
+                    installPrompt.prompt();
+                    installPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            setInstallPrompt(null);
+                        }
+                    });
+                } else {
+                    setShowInstallModal('android');
+                }
+            };
+
+            const scrollTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Define Handlers to pass down
+            const handlers = {
+                onShowKorean: handleShowKorean,
+                onOpenMap: openMap,
+                onOpenImage: openImages
+            };
+
+            return (
+                <div>
+                    {/* Screen View Container */}
+                    <div className="pb-32 no-print">
+                        {showKorean && <KoreanOverlay koreanText={showKorean.kr} name={showKorean.name} subText={showKorean.subText} onClose={() => setShowKorean(null)} lang={lang} />}
+                        {showInstallModal && <InstallModal platform={showInstallModal} onClose={() => setShowInstallModal(false)} />}
+
+                        <header className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md border-b border-gray-200/50 py-3' : 'bg-transparent py-5'}`}>
+                            <div className="max-w-3xl mx-auto px-5 flex justify-between items-center">
+                                <div onClick={scrollTop} className="cursor-pointer">
+                                    <h1 className={`font-black text-gray-900 tracking-tight leading-none transition-all ${scrolled ? 'text-lg' : 'text-2xl'}`}>{dictionary[lang].appTitle} <span className="text-blue-600">.</span></h1>
+                                    <p className={`text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-1 transition-all ${scrolled ? 'opacity-0 h-0' : 'opacity-100'}`}>Seoul 2026</p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button onClick={handleInstall} className="bg-blue-600 text-white p-2.5 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center justify-center" title={dictionary[lang].install}><Download size={18} /></button>
+                                    <button onClick={toggleLang} className="bg-gray-900 text-white px-3 py-1 rounded-full text-xs font-bold transition-colors shadow-md">{lang === 'zh' ? 'EN' : '中'}</button>
+                                    <button onClick={() => window.print()} className="bg-gray-100 hover:bg-gray-200 p-2.5 rounded-full text-gray-600 transition-colors" title={dictionary[lang].print}><Printer size={18} /></button>
+                                    <button onClick={handleShare} className="bg-gray-100 hover:bg-gray-200 p-2.5 rounded-full text-gray-600 transition-colors"><Share2 size={18} /></button>
+                                </div>
+                            </div>
+                        </header>
+
+                        <main className="max-w-3xl mx-auto px-5 pt-24">
+                            {!scrolled && activeTab === 'itinerary' && (
+                                <div className="mb-10 animate-scale-in">
+                                    <div className="aspect-[2/1] rounded-[32px] bg-black relative overflow-hidden shadow-2xl">
+                                        <img src="https://images.unsplash.com/photo-1538485399081-7191377e8241?q=80&w=1000&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover opacity-60 hover:scale-105 transition-transform duration-1000" />
+                                        <div className="absolute bottom-0 left-0 p-8 text-white">
+                                            <div className="flex gap-2 mb-3">
+                                                <span className="bg-blue-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">{dictionary[lang].duration}</span>
+                                                <span className="bg-white/20 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">{dictionary[lang].weather}</span>
+                                            </div>
+                                            <h2 className="text-3xl font-black leading-tight mb-1">{dictionary[lang].tripTitle}</h2>
+                                            <p className="text-sm text-gray-300 font-medium">{dictionary[lang].tripDate}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'itinerary' && <div className="animate-fade-in"><ItinerarySection handlers={handlers} lang={lang} /></div>}
+                            {activeTab === 'flights' && <div className="animate-fade-in"><h3 className="font-black text-2xl mb-6">{dictionary[lang].tabs.flights}</h3><FlightsSection isPrint={false} lang={lang} /></div>}
+                            {activeTab === 'hotel' && <div className="animate-fade-in"><HotelSection setShowKorean={setShowKorean} isPrint={false} lang={lang} /></div>}
+                            {activeTab === 'prep' && <div className="animate-fade-in"><PrepSection checkedItems={checkedItems} toggleCheck={toggleCheck} isPrint={false} lang={lang} /></div>}
+                        </main>
+
+                        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
+                            <div className="glass-dark px-1 py-1 rounded-full shadow-2xl flex items-center gap-1 border border-white/10">
+                                {Object.keys(dictionary[lang].tabs).map(key => (
+                                    <button key={key} onClick={() => setActiveTab(key)} className={`px-5 py-3 rounded-full font-bold text-sm transition-all ${activeTab === key ? 'bg-white text-black shadow-lg scale-105' : 'text-gray-400 hover:text-white'}`}>
+                                        {dictionary[lang].tabs[key]}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* PRINT VIEW Container (2 Pages A4 Layout) */}
+                    <div className="print-only p-4 max-w-[210mm] mx-auto bg-white">
+                        
+                        {/* PAGE 1: ITINERARY */}
+                        <div className="page-break relative flex flex-col h-full">
+                            <div className="text-center mb-4 border-b-2 border-black pb-2">
+                                <h1 className="text-2xl font-black mb-1">{dictionary[lang].tripTitle}</h1>
+                                <p className="text-gray-500 text-xs font-bold tracking-widest uppercase">{dictionary[lang].appTitle} • {dictionary[lang].duration}</p>
+                            </div>
+
+                            {/* 2-Column Grid for Itinerary to fit 1 page */}
+                            <div className="print-cols-2">
+                                <ItinerarySection handlers={handlers} lang={lang} />
+                            </div>
+                            
+                            <div className="mt-auto text-center text-[8px] text-gray-400 pt-2 border-t border-gray-100">Page 1/2 • Itinerary</div>
+                        </div>
+
+                        {/* PAGE 2: INFO + PREP */}
+                        <div className="page-break-before relative flex flex-col pt-4">
+                            <div className="text-center mb-4 border-b-2 border-green-500 pb-2">
+                                <h1 className="text-2xl font-black mb-1">{lang === 'zh' ? "資訊 & 準備" : "Info & Prep"}</h1>
+                                <p className="text-green-600 text-xs font-bold tracking-widest uppercase">Flights • Hotel • Checklist</p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <h2 className="text-sm font-black mb-2 flex items-center border-b pb-1"><Plane size={14} className="mr-2"/> {dictionary[lang].tabs.flights}</h2>
+                                    <div className="space-y-2">
+                                        <FlightsSection isPrint={true} lang={lang} />
+                                    </div>
+                                </div>
+                                <div>
+                                    <h2 className="text-sm font-black mb-2 flex items-center border-b pb-1"><Home size={14} className="mr-2"/> {dictionary[lang].tabs.hotel}</h2>
+                                    <div className="bg-gray-50 rounded-lg p-2 border border-gray-200">
+                                        <HotelSection setShowKorean={() => {}} isPrint={true} lang={lang} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-2 flex-1">
+                                <h2 className="text-sm font-black mb-2 flex items-center border-b pb-1"><Briefcase size={14} className="mr-2"/> {dictionary[lang].tabs.prep}</h2>
+                                <div className="grid grid-cols-3 gap-2">
+                                     <PrepSection checkedItems={checkedItems} toggleCheck={() => {}} isPrint={true} lang={lang} />
+                                </div>
+                            </div>
+
+                            <div className="mt-auto text-center text-[8px] text-gray-400 pt-2 border-t border-gray-100">Page 2/2 • Info & Prep</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const container = document.getElementById('root');
+        const root = createRoot(container);
+        root.render(<SeoulTrip2026 />);
+    </script>
+</body>
+</html>
