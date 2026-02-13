@@ -127,7 +127,6 @@
                 showAddress: "顯示地址",
                 showDriver: "請出示給司機看 (Show to Driver)",
                 close: "關閉 (Close)",
-                highlight: "重點",
                 booking: { book: "需預約", queue: "需排隊", free: "直接入場" },
                 urgent: "緊急提示",
                 urgentText: "回程機 13:45 起飛，請務必於 11:45 前抵達機場。建議早上 10:00 就要在酒店門口上巴士。",
@@ -159,7 +158,6 @@
                 showAddress: "Show Address",
                 showDriver: "Show to Driver",
                 close: "Close",
-                highlight: "Highlight",
                 booking: { book: "Booking", queue: "Queue", free: "Walk-in" },
                 urgent: "Urgent Notice",
                 urgentText: "Return flight departs at 13:45. You MUST arrive at airport by 11:45. Suggest taking bus at 10:00 AM.",
@@ -390,6 +388,7 @@
 
         // G. ChecklistGroup
         const ChecklistGroup = ({ title, items, color, category, checkedItems, onToggle }) => {
+            // Count checked items based on category + index to persist across language changes
             const checkedCount = items.filter((_, i) => checkedItems[`${category}_${i}`]).length;
             const borderClass = getColorClass(color, 'border');
             const bgClass = getColorClass(color, 'bg');
@@ -486,13 +485,13 @@
                 ], note: lang === 'zh' ? "重點行程！記得著最暖、防滑鞋。" : "Highlight day! Wear warmest gear."
             },
             {
-                day: "DAY 08", date: lang === 'zh' ? "2月21日 (六)" : "Feb 21 (Sat)", title: lang === 'zh' ? "Facial & 最後衝刺" : "Facial & Last Shop", highlights: [
-                    { time: "10:00", place: lang === 'zh' ? "Lienjang (明洞)" : "Lienjang Clinic", desc: lang === 'zh' ? "明洞店 Facial 臨走修復。" : "Final Facial @ Myeongdong.", mapTerm: "Lienjang Myeongdong", korean: "리앤장 명동점", tags: ["Beauty"], bookingType: "book", highlight: true },
-                    { time: "12:00", place: lang === 'zh' ? "廣藏市場" : "Gwangjang Mkt", desc: lang === 'zh' ? "綠豆餅、生牛肉 (午餐)。" : "Lunch at Market.", mapTerm: "Gwangjang Market", korean: "광장시장", tags: ["Food"], bookingType: "walk-in" },
-                    { time: "14:30", place: lang === 'zh' ? "益善洞" : "Ikseon-dong", desc: lang === 'zh' ? "韓屋巷弄。" : "Hanok alleys.", mapTerm: "Ikseon-dong", korean: "익선동", tags: ["Photo"] },
-                    { time: "17:00", place: lang === 'zh' ? "Lotte Mart" : "Lotte Mart", desc: lang === 'zh' ? "首爾站超市掃貨。" : "Seoul Station Mart.", mapTerm: "Lotte Mart Seoul Station", korean: "롯데마트 서울역점", tags: ["Shop"] },
-                    { time: "19:30", place: lang === 'zh' ? "Tian Mimi (點心女王)" : "Tian Mimi", desc: lang === 'zh' ? "黑白大廚鄭智善 (料理狂人替代)。" : "Dim Sum Queen (Cooking Maniac alt).", mapTerm: "Tian Mimi Seochon", korean: "티엔미미 서촌점", tags: ["Netflix", "Food"], bookingType: "queue" }
-                ], note: lang === 'zh' ? "料理狂人 Deepin 全滿，改去同為黑白大廚的 Tian Mimi (點心女王)。" : "Deepin fully booked. Changed to Dim Sum Queen (Tian Mimi)."
+                day: "DAY 08", date: lang === 'zh' ? "2月21日 (六)" : "Feb 21 (Sat)", title: lang === 'zh' ? "Aqua Field & 點心女王" : "Aqua Field & Tian Mimi", highlights: [
+                    { time: "10:30", place: lang === 'zh' ? "前往高陽" : "Go to Goyang", desc: lang === 'zh' ? "前往 Starfield Goyang。" : "Go to Starfield Goyang.", tags: ["Transport"] },
+                    { time: "11:30", place: lang === 'zh' ? "Aqua Field 高陽" : "Aqua Field", desc: lang === 'zh' ? "汗蒸幕+水上樂園 (阿妹指定)。" : "Water Park & Spa (Requested).", mapTerm: "Aquafield Goyang", korean: "아쿠아필드 고양", tags: ["Fun", "Swim"], bookingType: "book", highlight: true },
+                    { time: "16:30", place: lang === 'zh' ? "返回首爾" : "Back to Seoul", desc: lang === 'zh' ? "回市區晚餐。" : "Return to city.", tags: ["Transport"] },
+                    { time: "19:00", place: lang === 'zh' ? "Tian Mimi (點心女王)" : "Tian Mimi", desc: lang === 'zh' ? "黑白大廚鄭智善 (料理狂人替代)。" : "Dim Sum Queen (Cooking Maniac alt).", mapTerm: "Tian Mimi Seochon", korean: "티엔미미 서촌점", tags: ["Netflix", "Food"], bookingType: "queue" },
+                    { time: "21:00", place: lang === 'zh' ? "最後衝刺/執行李" : "Packing", desc: lang === 'zh' ? "Lotte Mart 買手信 + 執行李。" : "Last shop & Pack.", tags: ["Task"] }
+                ], note: lang === 'zh' ? "Aqua Field 記得帶泳衣！高陽較遠，注意回程時間。" : "Bring swimsuit for Aqua Field!"
             },
             {
                 day: "DAY 09", date: lang === 'zh' ? "2月22日 (日)" : "Feb 22 (Sun)", title: lang === 'zh' ? "再見首爾" : "Bye Seoul", highlights: [
