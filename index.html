@@ -7,9 +7,38 @@
     
     <!-- PWA Settings -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="theme-color" content="#ffffff">
     
+    <!-- Icons -->
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/201/201623.png">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/201/201623.png">
+
+    <!-- Error Handling Script -->
+    <script>
+        (function() {
+            const shouldSuppress = (msg, stack) => {
+                const str = (msg || '') + (stack || '');
+                return str.includes('AES key data') || 
+                       str.includes('chrome-extension') || 
+                       str.includes('Geolocation') ||
+                       str.includes('DataError');
+            };
+            window.addEventListener('unhandledrejection', function(event) {
+                if (shouldSuppress(event.reason?.message, event.reason?.stack)) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                }
+            });
+            window.addEventListener('error', function(event) {
+                if (shouldSuppress(event.message, event.filename)) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                }
+            });
+        })();
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,8 +60,8 @@
             font-family: 'Noto Sans HK', sans-serif; 
             background-color: #FAFAFA; 
             color: #171717; 
-            -webkit-font-smoothing: antialiased; 
-            padding-top: env(safe-area-inset-top);
+            -webkit-font-smoothing: antialiased;
+            /* Remove global safe-area padding here, handle in components */
             padding-bottom: env(safe-area-inset-bottom);
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -54,13 +83,13 @@
                 background-color: white; 
                 -webkit-print-color-adjust: exact !important; 
                 print-color-adjust: exact !important; 
-                font-size: 8.5pt;
+                font-size: 8.5pt; 
             }
             .no-print { display: none !important; }
             .print-only { display: block !important; }
             .page-break-before { page-break-before: always; }
             .avoid-break { break-inside: avoid; page-break-inside: avoid; }
-            .print-cols-2 { column-count: 2; column-gap: 1cm; width: 100%; }
+            .print-cols-2 { column-count: 2; column-gap: 1.5cm; width: 100%; }
             * { box-shadow: none !important; text-shadow: none !important; }
             .print-tight-y { margin-top: 0 !important; margin-bottom: 0 !important; padding-top: 2px !important; padding-bottom: 2px !important; }
             .print-border { border: 1px solid #ddd !important; }
@@ -83,7 +112,7 @@
             Sun, Cloud, CloudRain, CloudSnow, Wind, Moon, Loader2, Download, Smartphone, Navigation
         } from 'lucide-react';
 
-        // --- 1. TRANSLATION DATA ---
+        // --- TRANSLATION DATA ---
         const dictionary = {
             zh: {
                 appTitle: "開心的家",
@@ -98,7 +127,6 @@
                 showAddress: "顯示地址",
                 showDriver: "請出示給司機看 (Show to Driver)",
                 close: "關閉 (Close)",
-                highlight: "重點",
                 booking: { book: "需預約", queue: "需排隊", free: "直接入場" },
                 urgent: "緊急提示",
                 urgentText: "回程機 13:45 起飛，請務必於 11:45 前抵達機場。建議早上 10:00 就要在酒店門口上巴士。",
@@ -115,21 +143,7 @@
                 },
                 avgTemp: "平均氣溫",
                 plugType: "兩腳圓形",
-                today: "今日 TODAY",
-                liveWeather: "即時天氣",
-                weatherLoc: { seoul: "首爾", local: "目前位置" },
-                time: { hk: "香港", seoul: "首爾" },
-                forecast: "未來預報",
-                weatherStatus: {
-                    0: "晴天", 1: "多雲", 2: "多雲", 3: "陰天",
-                    45: "有霧", 48: "起霧",
-                    51: "毛毛雨", 53: "毛毛雨", 55: "毛毛雨",
-                    61: "下雨", 63: "下雨", 65: "大雨",
-                    71: "下雪 ❄️", 73: "下雪 ❄️", 75: "大雪 ❄️",
-                    77: "雪粒", 80: "陣雨", 81: "陣雨", 82: "暴雨",
-                    85: "陣雪", 86: "陣雪",
-                    95: "雷雨", 96: "雷雨", 99: "雷雨"
-                }
+                today: "今日 TODAY"
             },
             en: {
                 appTitle: "Happy Family",
@@ -144,7 +158,6 @@
                 showAddress: "Show Address",
                 showDriver: "Show to Driver",
                 close: "Close",
-                highlight: "Highlight",
                 booking: { book: "Booking", queue: "Queue", free: "Walk-in" },
                 urgent: "Urgent Notice",
                 urgentText: "Return flight departs at 13:45. You MUST arrive at airport by 11:45. Suggest taking bus at 10:00 AM.",
@@ -161,25 +174,10 @@
                 },
                 avgTemp: "Avg Temp",
                 plugType: "Type F (2-Pin)",
-                today: "TODAY",
-                liveWeather: "Live Weather",
-                weatherLoc: { seoul: "Seoul", local: "Current Loc" },
-                time: { hk: "Hong Kong", seoul: "Seoul" },
-                forecast: "Forecast",
-                weatherStatus: {
-                    0: "Clear", 1: "Mainly Clear", 2: "Partly Cloudy", 3: "Overcast",
-                    45: "Foggy", 48: "Foggy",
-                    51: "Drizzle", 53: "Drizzle", 55: "Drizzle",
-                    61: "Rain", 63: "Rain", 65: "Heavy Rain",
-                    71: "Snow ❄️", 73: "Snow ❄️", 75: "Heavy Snow ❄️",
-                    77: "Snow Grains", 80: "Showers", 81: "Showers", 82: "Violent Showers",
-                    85: "Snow Showers", 86: "Snow Showers",
-                    95: "Thunderstorm", 96: "Thunderstorm", 99: "Thunderstorm"
-                }
+                today: "TODAY"
             }
         };
 
-        // --- 2. UTILITIES ---
         const getColorClass = (color, type) => {
             const maps = {
                 blue: { bg: 'bg-blue-50', text: 'text-blue-600', ring: 'ring-blue-50', border: 'border-blue-100', bar: 'bg-blue-500', icon: 'text-blue-500' },
@@ -192,207 +190,6 @@
             return maps[color]?.[type] || '';
         };
 
-        // --- 3. COMPONENTS (Defined in order of dependency) ---
-
-        // A. InstallModal
-        const InstallModal = ({ onClose, platform }) => (
-            <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 animate-fade-in no-print" onClick={onClose}>
-                <div className="absolute inset-0 bg-black/90 backdrop-blur-sm"></div>
-                <div className="bg-white w-full max-w-sm relative z-10 overflow-hidden shadow-2xl rounded-3xl p-6 animate-scale-in" onClick={e => e.stopPropagation()}>
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-xl font-black">加入主畫面</h3>
-                        <button onClick={onClose} className="p-1 bg-gray-100 rounded-full"><X size={20}/></button>
-                    </div>
-                    
-                    {platform === 'ios' ? (
-                        <div className="space-y-4 text-center">
-                            <p className="text-gray-600">在 iPhone 上，請跟隨以下步驟：</p>
-                            <div className="bg-gray-50 p-4 rounded-xl text-left space-y-2 text-sm">
-                                <div className="flex items-center"><Share2 size={16} className="mr-2 text-blue-500"/> 1. 點擊瀏覽器底部的 <strong>「分享」</strong> 按鈕</div>
-                                <div className="flex items-center"><CheckSquare size={16} className="mr-2 text-gray-500"/> 2. 往下滑動找到 <strong>「加入主畫面」</strong></div>
-                                <div className="flex items-center"><UserPlus size={16} className="mr-2 text-gray-500"/> 3. 點擊右上角的 <strong>「新增」</strong></div>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="space-y-4 text-center">
-                            <p className="text-gray-600">在 Android / Chrome 上：</p>
-                            <div className="bg-gray-50 p-4 rounded-xl text-left space-y-2 text-sm">
-                                <div className="flex items-center"><Menu size={16} className="mr-2 text-gray-500"/> 1. 點擊瀏覽器右上角的 <strong>選單 (三點)</strong></div>
-                                <div className="flex items-center"><Smartphone size={16} className="mr-2 text-blue-500"/> 2. 選擇 <strong>「安裝應用程式」</strong> 或 <strong>「加到主畫面」</strong></div>
-                            </div>
-                        </div>
-                    )}
-                    
-                    <button onClick={onClose} className="w-full mt-6 py-3 bg-blue-600 text-white rounded-xl font-bold">明白！</button>
-                </div>
-            </div>
-        );
-
-        // B. RealTimeWeather (Updated with Safe Location Logic)
-        const RealTimeWeather = ({ lang, isPrint }) => {
-            const [weather, setWeather] = useState(null);
-            const [forecast, setForecast] = useState([]);
-            const [loading, setLoading] = useState(true);
-            const [locationName, setLocationName] = useState(dictionary[lang].weatherLoc.seoul);
-            const [hkTime, setHkTime] = useState("");
-            const [seoulTime, setSeoulTime] = useState("");
-
-            // Clock Effect
-            useEffect(() => {
-                const updateTime = () => {
-                    const now = new Date();
-                    try {
-                        setHkTime(now.toLocaleTimeString('en-US', { timeZone: 'Asia/Hong_Kong', hour: '2-digit', minute: '2-digit', hour12: false }));
-                        setSeoulTime(now.toLocaleTimeString('en-US', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false }));
-                    } catch (e) {
-                        setHkTime("--:--");
-                        setSeoulTime("--:--");
-                    }
-                };
-                updateTime();
-                const interval = setInterval(updateTime, 60000); 
-                return () => clearInterval(interval);
-            }, []);
-
-            // Weather Fetch Function
-            const fetchWeather = (lat, lon, isLocal) => {
-                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Asia%2FSeoul&forecast_days=4`;
-                
-                fetch(url)
-                    .then(res => res.json())
-                    .then(data => {
-                        setWeather(data.current);
-                        setForecast(data.daily);
-                        setLoading(false);
-                        if(isLocal) setLocationName(dictionary[lang].weatherLoc.local);
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        setLoading(false);
-                    });
-            };
-
-            // Geolocation Logic with Safety Try-Catch and Timeout
-            useEffect(() => {
-                const SEOUL_LAT = 37.5665;
-                const SEOUL_LON = 126.9780;
-
-                const getGeo = () => {
-                    if ("geolocation" in navigator) {
-                        try {
-                            navigator.geolocation.getCurrentPosition(
-                                (position) => {
-                                    const { latitude, longitude } = position.coords;
-                                    const isKorea = latitude >= 33 && latitude <= 39 && longitude >= 124 && longitude <= 131;
-                                    if (isKorea) {
-                                        fetchWeather(latitude, longitude, true);
-                                    } else {
-                                        fetchWeather(SEOUL_LAT, SEOUL_LON, false);
-                                    }
-                                },
-                                (error) => {
-                                    console.log("Geo error:", error);
-                                    fetchWeather(SEOUL_LAT, SEOUL_LON, false);
-                                },
-                                { timeout: 5000 }
-                            );
-                        } catch (e) {
-                            console.error("Geo API error:", e);
-                            fetchWeather(SEOUL_LAT, SEOUL_LON, false);
-                        }
-                    } else {
-                        fetchWeather(SEOUL_LAT, SEOUL_LON, false);
-                    }
-                };
-                
-                getGeo();
-
-            }, [lang]);
-
-            if (loading && !isPrint) {
-                return (
-                    <div className="bg-black text-white p-6 rounded-2xl shadow-lg animate-pulse w-full">
-                        <div className="flex justify-between items-start mb-4"><Loader2 className="animate-spin text-gray-400" /></div>
-                        <div className="text-xs font-bold text-gray-400 uppercase">Loading Weather...</div>
-                    </div>
-                );
-            }
-
-            // Fallback
-            if (!weather) return null;
-
-            const getWeatherIcon = (code, isDay = 1, size = 24) => {
-                const className = `text-white ${size > 20 ? 'animate-pulse' : ''}`;
-                if (code >= 71 && code <= 86) return <Snowflake size={size} className="text-white animate-bounce" />; // Snow
-                if (code >= 51 && code <= 67) return <CloudRain size={size} className="text-blue-200" />; // Rain
-                if (code >= 1 && code <= 3) return <Cloud size={size} className="text-gray-300" />; // Cloud
-                if (code === 0) return isDay ? <Sun size={size} className="text-yellow-400" /> : <Moon size={size} className="text-yellow-200" />; // Clear
-                return <Thermometer size={size} className="text-blue-400" />;
-            };
-
-            const weatherDesc = dictionary[lang].weatherStatus[weather.weather_code] || (lang === 'zh' ? "多雲" : "Cloudy");
-            const isSnowing = weather.weather_code >= 71 && weather.weather_code <= 86;
-
-            return (
-                <div className={`rounded-3xl p-6 shadow-xl w-full text-white relative overflow-hidden transition-all ${isSnowing ? 'bg-gradient-to-br from-blue-900 to-blue-600 ring-4 ring-white/50' : 'bg-gradient-to-br from-gray-900 to-black'}`}>
-                    
-                    {/* Decorative Background */}
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-
-                    {/* Row 1: Clocks */}
-                    <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4 relative z-10">
-                        <div className="text-center">
-                            <div className="text-xs text-gray-400 font-bold uppercase mb-1">{dictionary[lang].time.hk}</div>
-                            <div className="text-xl font-mono font-bold tracking-wider">{hkTime}</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-xs text-blue-400 font-bold uppercase mb-1">{dictionary[lang].time.seoul}</div>
-                            <div className="text-2xl font-mono font-black tracking-wider text-blue-200">{seoulTime}</div>
-                        </div>
-                    </div>
-
-                    {/* Row 2: Current Weather */}
-                    <div className="flex justify-between items-center mb-6 relative z-10">
-                        <div>
-                            <div className="text-xs font-bold text-gray-400 uppercase mb-1 flex items-center gap-1">
-                                {locationName === dictionary[lang].weatherLoc.local ? <Navigation size={12} className="text-green-400"/> : <MapPin size={12}/>}
-                                {locationName}
-                            </div>
-                            <div className="flex items-baseline gap-2">
-                                <div className="text-5xl font-black tracking-tighter">{Math.round(weather.temperature_2m)}°</div>
-                                <div className="text-lg font-medium opacity-90">{weatherDesc}</div>
-                            </div>
-                        </div>
-                        <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-sm">
-                            {getWeatherIcon(weather.weather_code, weather.is_day, 48)}
-                        </div>
-                    </div>
-
-                    {/* Row 3: Forecast */}
-                    {forecast && forecast.time && (
-                        <div className="grid grid-cols-3 gap-2 relative z-10 bg-white/5 rounded-xl p-3">
-                            {forecast.time.slice(1, 4).map((dateStr, i) => {
-                                const date = new Date(dateStr);
-                                const dayName = date.toLocaleDateString(lang === 'zh' ? 'zh-HK' : 'en-US', { weekday: 'short' });
-                                const code = forecast.weather_code[i+1];
-                                const max = Math.round(forecast.temperature_2m_max[i+1]);
-                                const min = Math.round(forecast.temperature_2m_min[i+1]);
-                                
-                                return (
-                                    <div key={i} className="flex flex-col items-center justify-center border-r border-white/10 last:border-0">
-                                        <span className="text-[10px] text-gray-400 font-bold uppercase mb-1">{dayName}</span>
-                                        <div className="mb-1">{getWeatherIcon(code, 1, 18)}</div>
-                                        <span className="text-xs font-bold">{min}°-{max}°</span>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
-            );
-        };
-
-        // C. KoreanOverlay
         const KoreanOverlay = ({ koreanText, name, subText, onClose, lang }) => (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-fade-in no-print" onClick={onClose}>
                 <div className="absolute inset-0 bg-black/90 backdrop-blur-sm"></div>
@@ -420,16 +217,16 @@
             </div>
         );
 
-        // D. TimelineItem
         const TimelineItem = ({ time, place, desc, highlight, tags, mapTerm, korean, bookingType, isLast, onShowKorean, onOpenMap, onOpenImage, lang }) => (
             <div className="flex group avoid-break mb-4 print:mb-2">
                 <div className="w-14 flex-shrink-0 flex flex-col items-center pt-1 print:w-10">
                     <span className="text-xs font-bold text-gray-900 print:text-[8pt]">{time}</span>
                     {!isLast && <div className="w-px h-full bg-gray-200 mt-1 group-hover:bg-gray-300 transition-colors print:border-l print:border-gray-200 print:bg-transparent"></div>}
                 </div>
+                
                 <div className="flex-1 pb-4 print:pb-1">
                     <div className={`relative p-4 rounded-2xl transition-all duration-300 border ${highlight ? 'bg-black text-white border-black shadow-lg shadow-gray-200 print:bg-gray-50 print:text-black print:border-gray-300' : 'bg-white border-gray-100 shadow-sm hover:shadow-md print:border-gray-200 print:shadow-none'}`}>
-                        {highlight && <div className="absolute -top-3 -right-3 bg-yellow-400 text-black text-[10px] font-black px-2 py-1 rounded shadow-sm rotate-3 print:border print:border-black print:text-[7pt] print:py-0.5">{dictionary[lang].highlight}</div>}
+                        
                         <div className="flex justify-between items-start mb-1">
                             <h4 className={`text-base font-bold leading-tight print:text-sm ${highlight ? 'text-white print:text-black' : 'text-gray-900'}`}>{place}</h4>
                             <div className="flex gap-1.5 no-print">
@@ -438,7 +235,9 @@
                                 {mapTerm && <button onClick={(e) => { e.stopPropagation(); onOpenMap(mapTerm); }} className="p-1.5 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100"><MapPin size={14} /></button>}
                             </div>
                         </div>
+                        
                         <p className={`text-xs mb-2 leading-relaxed print:text-[8pt] print:mb-1 ${highlight ? 'text-gray-300 print:text-gray-600' : 'text-gray-500'}`}>{desc}</p>
+                        
                         <div className="flex flex-wrap gap-1.5">
                             {bookingType && (
                                 <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase border bg-gray-100 text-gray-600 border-gray-200 print:text-[7pt]`}>
@@ -454,12 +253,12 @@
             </div>
         );
 
-        // E. DayCard
         const DayCard = ({ id, day, date, title, highlights, note, onShowKorean, onOpenMap, onOpenImage, lang, isToday }) => (
             <div id={id} className={`mb-8 print:mb-2 avoid-break transition-all duration-500 ${isToday ? 'bg-green-50/50 p-2 rounded-2xl border-l-4 border-green-500' : ''}`}>
                 <div className="flex items-end gap-3 mb-4 px-2 print:mb-1 print:border-b print:border-black print:pb-1 print:flex-row print:items-center">
                     <div className="text-5xl font-black text-gray-200 leading-none -mb-1 print:text-black print:text-lg print:mb-0 print:mr-2 no-print">{day.replace('DAY ', 'D')}</div>
                     <div className="print-only font-black text-lg text-black mr-2">{day.replace('DAY ', 'D')}</div>
+                    
                     <div className="flex-1">
                         <div className="flex items-center gap-2">
                             <div className="text-xs font-bold text-blue-600 uppercase tracking-widest print:text-gray-500 print:text-[8pt]">{date}</div>
@@ -468,11 +267,13 @@
                         <div className="text-xl font-bold text-gray-900 print:text-sm">{title}</div>
                     </div>
                 </div>
+
                 <div className="pl-2 print:pl-0">
                     {highlights.map((item, idx) => (
                         <TimelineItem key={idx} {...item} isLast={idx === highlights.length - 1} onShowKorean={onShowKorean} onOpenMap={onOpenMap} onOpenImage={onOpenImage} lang={lang} />
                     ))}
                 </div>
+
                 {note && (
                     <div className="ml-14 mt-[-10px] mb-6 p-3 bg-orange-50 border-l-4 border-orange-400 rounded-r-lg text-xs text-orange-800 font-medium leading-relaxed flex gap-2 print:bg-white print:border print:border-orange-400 print:mt-0 print:mb-2 print:ml-0 print:p-2 print:text-[8pt]">
                         <AlertTriangle size={14} className="shrink-0 text-orange-500"/>
@@ -482,12 +283,12 @@
             </div>
         );
 
-        // F. FlightCard
         const FlightCard = ({ type, date, flightNo, airline, time, airport, duration, color }) => {
             const barClass = getColorClass(color, 'bar');
             const bgClass = getColorClass(color, 'bg');
             const textClass = getColorClass(color, 'text');
             const iconClass = getColorClass(color, 'icon');
+
             return (
                 <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden mb-6 relative group print:shadow-none print:border-gray-400 print:mb-2 print:rounded-lg">
                     <div className={`absolute top-0 left-0 w-full h-1 ${barClass} print:h-full print:w-1`}></div>
@@ -523,7 +324,6 @@
             );
         };
 
-        // G. RoomCard
         const RoomCard = ({ roomName, members, color, lang }) => {
             const bgClass = getColorClass(color, 'bg');
             const textClass = getColorClass(color, 'text');
@@ -542,8 +342,8 @@
             );
         };
 
-        // H. ChecklistGroup
         const ChecklistGroup = ({ title, items, color, category, checkedItems, onToggle }) => {
+            // Count checked items based on category + index to persist across language changes
             const checkedCount = items.filter((_, i) => checkedItems[`${category}_${i}`]).length;
             const borderClass = getColorClass(color, 'border');
             const bgClass = getColorClass(color, 'bg');
@@ -570,6 +370,39 @@
                 </div>
             );
         };
+
+        const InstallModal = ({ onClose, platform }) => (
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 animate-fade-in no-print" onClick={onClose}>
+                <div className="absolute inset-0 bg-black/90 backdrop-blur-sm"></div>
+                <div className="bg-white w-full max-w-sm relative z-10 overflow-hidden shadow-2xl rounded-3xl p-6 animate-scale-in" onClick={e => e.stopPropagation()}>
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-xl font-black">加入主畫面</h3>
+                        <button onClick={onClose} className="p-1 bg-gray-100 rounded-full"><X size={20}/></button>
+                    </div>
+                    
+                    {platform === 'ios' ? (
+                        <div className="space-y-4 text-center">
+                            <p className="text-gray-600">在 iPhone 上，請跟隨以下步驟：</p>
+                            <div className="bg-gray-50 p-4 rounded-xl text-left space-y-2 text-sm">
+                                <div className="flex items-center"><Share2 size={16} className="mr-2 text-blue-500"/> 1. 點擊瀏覽器底部的 <strong>「分享」</strong> 按鈕</div>
+                                <div className="flex items-center"><CheckSquare size={16} className="mr-2 text-gray-500"/> 2. 往下滑動找到 <strong>「加入主畫面」</strong></div>
+                                <div className="flex items-center"><UserPlus size={16} className="mr-2 text-gray-500"/> 3. 點擊右上角的 <strong>「新增」</strong></div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-4 text-center">
+                            <p className="text-gray-600">在 Android / Chrome 上：</p>
+                            <div className="bg-gray-50 p-4 rounded-xl text-left space-y-2 text-sm">
+                                <div className="flex items-center"><Menu size={16} className="mr-2 text-gray-500"/> 1. 點擊瀏覽器右上角的 <strong>選單 (三點)</strong></div>
+                                <div className="flex items-center"><Smartphone size={16} className="mr-2 text-blue-500"/> 2. 選擇 <strong>「安裝應用程式」</strong> 或 <strong>「加到主畫面」</strong></div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    <button onClick={onClose} className="w-full mt-6 py-3 bg-blue-600 text-white rounded-xl font-bold">明白！</button>
+                </div>
+            </div>
+        );
 
         // --- SECTIONS ---
 
@@ -740,7 +573,13 @@
             <>
                 <div className={`flex gap-4 mb-8 overflow-x-auto no-scrollbar pb-2 no-print ${isPrint ? 'hidden' : ''}`}>
                     <div className="bg-black text-white p-5 rounded-2xl min-w-[140px] flex flex-col justify-between h-32 shadow-lg">
-                        <RealTimeWeather lang={lang} isPrint={false} />
+                        <div className="flex flex-col justify-between h-full">
+                            <Thermometer className="text-blue-400" />
+                            <div>
+                                <div className="text-3xl font-black">-5°C</div>
+                                <div className="text-[10px] font-bold text-gray-400 uppercase">{dictionary[lang].avgTemp}</div>
+                            </div>
+                        </div>
                     </div>
                     <div className="bg-white p-5 rounded-2xl min-w-[140px] flex flex-col justify-between h-32 border border-gray-100 shadow-sm">
                         <Plug className="text-yellow-500" />
