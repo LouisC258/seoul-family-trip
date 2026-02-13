@@ -7,7 +7,7 @@
     
     <!-- PWA Settings -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#ffffff">
     
     <!-- Icons -->
@@ -60,8 +60,8 @@
             font-family: 'Noto Sans HK', sans-serif; 
             background-color: #FAFAFA; 
             color: #171717; 
-            -webkit-font-smoothing: antialiased;
-            /* Remove global safe-area padding here, handle in components */
+            -webkit-font-smoothing: antialiased; 
+            /* Fix safe area for iPhone X+ */
             padding-bottom: env(safe-area-inset-bottom);
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -83,13 +83,13 @@
                 background-color: white; 
                 -webkit-print-color-adjust: exact !important; 
                 print-color-adjust: exact !important; 
-                font-size: 8.5pt; 
+                font-size: 8.5pt;
             }
             .no-print { display: none !important; }
             .print-only { display: block !important; }
             .page-break-before { page-break-before: always; }
             .avoid-break { break-inside: avoid; page-break-inside: avoid; }
-            .print-cols-2 { column-count: 2; column-gap: 1.5cm; width: 100%; }
+            .print-cols-2 { column-count: 2; column-gap: 1cm; width: 100%; }
             * { box-shadow: none !important; text-shadow: none !important; }
             .print-tight-y { margin-top: 0 !important; margin-bottom: 0 !important; padding-top: 2px !important; padding-bottom: 2px !important; }
             .print-border { border: 1px solid #ddd !important; }
@@ -112,7 +112,7 @@
             Sun, Cloud, CloudRain, CloudSnow, Wind, Moon, Loader2, Download, Smartphone, Navigation
         } from 'lucide-react';
 
-        // --- TRANSLATION DATA ---
+        // --- 1. TRANSLATION DATA ---
         const dictionary = {
             zh: {
                 appTitle: "開心的家",
@@ -127,6 +127,7 @@
                 showAddress: "顯示地址",
                 showDriver: "請出示給司機看 (Show to Driver)",
                 close: "關閉 (Close)",
+                highlight: "重點",
                 booking: { book: "需預約", queue: "需排隊", free: "直接入場" },
                 urgent: "緊急提示",
                 urgentText: "回程機 13:45 起飛，請務必於 11:45 前抵達機場。建議早上 10:00 就要在酒店門口上巴士。",
@@ -158,6 +159,7 @@
                 showAddress: "Show Address",
                 showDriver: "Show to Driver",
                 close: "Close",
+                highlight: "Highlight",
                 booking: { book: "Booking", queue: "Queue", free: "Walk-in" },
                 urgent: "Urgent Notice",
                 urgentText: "Return flight departs at 13:45. You MUST arrive at airport by 11:45. Suggest taking bus at 10:00 AM.",
@@ -178,6 +180,7 @@
             }
         };
 
+        // --- 2. UTILITIES ---
         const getColorClass = (color, type) => {
             const maps = {
                 blue: { bg: 'bg-blue-50', text: 'text-blue-600', ring: 'ring-blue-50', border: 'border-blue-100', bar: 'bg-blue-500', icon: 'text-blue-500' },
@@ -190,6 +193,43 @@
             return maps[color]?.[type] || '';
         };
 
+        // --- 3. COMPONENTS (Strictly Ordered) ---
+
+        // A. InstallModal
+        const InstallModal = ({ onClose, platform }) => (
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 animate-fade-in no-print" onClick={onClose}>
+                <div className="absolute inset-0 bg-black/90 backdrop-blur-sm"></div>
+                <div className="bg-white w-full max-w-sm relative z-10 overflow-hidden shadow-2xl rounded-3xl p-6 animate-scale-in" onClick={e => e.stopPropagation()}>
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-xl font-black">加入主畫面</h3>
+                        <button onClick={onClose} className="p-1 bg-gray-100 rounded-full"><X size={20}/></button>
+                    </div>
+                    
+                    {platform === 'ios' ? (
+                        <div className="space-y-4 text-center">
+                            <p className="text-gray-600">在 iPhone 上，請跟隨以下步驟：</p>
+                            <div className="bg-gray-50 p-4 rounded-xl text-left space-y-2 text-sm">
+                                <div className="flex items-center"><Share2 size={16} className="mr-2 text-blue-500"/> 1. 點擊瀏覽器底部的 <strong>「分享」</strong> 按鈕</div>
+                                <div className="flex items-center"><CheckSquare size={16} className="mr-2 text-gray-500"/> 2. 往下滑動找到 <strong>「加入主畫面」</strong></div>
+                                <div className="flex items-center"><UserPlus size={16} className="mr-2 text-gray-500"/> 3. 點擊右上角的 <strong>「新增」</strong></div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-4 text-center">
+                            <p className="text-gray-600">在 Android / Chrome 上：</p>
+                            <div className="bg-gray-50 p-4 rounded-xl text-left space-y-2 text-sm">
+                                <div className="flex items-center"><Menu size={16} className="mr-2 text-gray-500"/> 1. 點擊瀏覽器右上角的 <strong>選單 (三點)</strong></div>
+                                <div className="flex items-center"><Smartphone size={16} className="mr-2 text-blue-500"/> 2. 選擇 <strong>「安裝應用程式」</strong> 或 <strong>「加到主畫面」</strong></div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    <button onClick={onClose} className="w-full mt-6 py-3 bg-blue-600 text-white rounded-xl font-bold">明白！</button>
+                </div>
+            </div>
+        );
+
+        // B. KoreanOverlay
         const KoreanOverlay = ({ koreanText, name, subText, onClose, lang }) => (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-fade-in no-print" onClick={onClose}>
                 <div className="absolute inset-0 bg-black/90 backdrop-blur-sm"></div>
@@ -217,6 +257,7 @@
             </div>
         );
 
+        // C. TimelineItem (Removed Highlight Badge)
         const TimelineItem = ({ time, place, desc, highlight, tags, mapTerm, korean, bookingType, isLast, onShowKorean, onOpenMap, onOpenImage, lang }) => (
             <div className="flex group avoid-break mb-4 print:mb-2">
                 <div className="w-14 flex-shrink-0 flex flex-col items-center pt-1 print:w-10">
@@ -227,6 +268,8 @@
                 <div className="flex-1 pb-4 print:pb-1">
                     <div className={`relative p-4 rounded-2xl transition-all duration-300 border ${highlight ? 'bg-black text-white border-black shadow-lg shadow-gray-200 print:bg-gray-50 print:text-black print:border-gray-300' : 'bg-white border-gray-100 shadow-sm hover:shadow-md print:border-gray-200 print:shadow-none'}`}>
                         
+                        {/* Highlight Badge REMOVED here */}
+
                         <div className="flex justify-between items-start mb-1">
                             <h4 className={`text-base font-bold leading-tight print:text-sm ${highlight ? 'text-white print:text-black' : 'text-gray-900'}`}>{place}</h4>
                             <div className="flex gap-1.5 no-print">
@@ -253,6 +296,7 @@
             </div>
         );
 
+        // D. DayCard
         const DayCard = ({ id, day, date, title, highlights, note, onShowKorean, onOpenMap, onOpenImage, lang, isToday }) => (
             <div id={id} className={`mb-8 print:mb-2 avoid-break transition-all duration-500 ${isToday ? 'bg-green-50/50 p-2 rounded-2xl border-l-4 border-green-500' : ''}`}>
                 <div className="flex items-end gap-3 mb-4 px-2 print:mb-1 print:border-b print:border-black print:pb-1 print:flex-row print:items-center">
@@ -283,6 +327,7 @@
             </div>
         );
 
+        // E. FlightCard
         const FlightCard = ({ type, date, flightNo, airline, time, airport, duration, color }) => {
             const barClass = getColorClass(color, 'bar');
             const bgClass = getColorClass(color, 'bg');
@@ -324,6 +369,7 @@
             );
         };
 
+        // F. RoomCard
         const RoomCard = ({ roomName, members, color, lang }) => {
             const bgClass = getColorClass(color, 'bg');
             const textClass = getColorClass(color, 'text');
@@ -342,8 +388,8 @@
             );
         };
 
+        // G. ChecklistGroup
         const ChecklistGroup = ({ title, items, color, category, checkedItems, onToggle }) => {
-            // Count checked items based on category + index to persist across language changes
             const checkedCount = items.filter((_, i) => checkedItems[`${category}_${i}`]).length;
             const borderClass = getColorClass(color, 'border');
             const bgClass = getColorClass(color, 'bg');
@@ -371,39 +417,6 @@
             );
         };
 
-        const InstallModal = ({ onClose, platform }) => (
-            <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 animate-fade-in no-print" onClick={onClose}>
-                <div className="absolute inset-0 bg-black/90 backdrop-blur-sm"></div>
-                <div className="bg-white w-full max-w-sm relative z-10 overflow-hidden shadow-2xl rounded-3xl p-6 animate-scale-in" onClick={e => e.stopPropagation()}>
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-xl font-black">加入主畫面</h3>
-                        <button onClick={onClose} className="p-1 bg-gray-100 rounded-full"><X size={20}/></button>
-                    </div>
-                    
-                    {platform === 'ios' ? (
-                        <div className="space-y-4 text-center">
-                            <p className="text-gray-600">在 iPhone 上，請跟隨以下步驟：</p>
-                            <div className="bg-gray-50 p-4 rounded-xl text-left space-y-2 text-sm">
-                                <div className="flex items-center"><Share2 size={16} className="mr-2 text-blue-500"/> 1. 點擊瀏覽器底部的 <strong>「分享」</strong> 按鈕</div>
-                                <div className="flex items-center"><CheckSquare size={16} className="mr-2 text-gray-500"/> 2. 往下滑動找到 <strong>「加入主畫面」</strong></div>
-                                <div className="flex items-center"><UserPlus size={16} className="mr-2 text-gray-500"/> 3. 點擊右上角的 <strong>「新增」</strong></div>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="space-y-4 text-center">
-                            <p className="text-gray-600">在 Android / Chrome 上：</p>
-                            <div className="bg-gray-50 p-4 rounded-xl text-left space-y-2 text-sm">
-                                <div className="flex items-center"><Menu size={16} className="mr-2 text-gray-500"/> 1. 點擊瀏覽器右上角的 <strong>選單 (三點)</strong></div>
-                                <div className="flex items-center"><Smartphone size={16} className="mr-2 text-blue-500"/> 2. 選擇 <strong>「安裝應用程式」</strong> 或 <strong>「加到主畫面」</strong></div>
-                            </div>
-                        </div>
-                    )}
-                    
-                    <button onClick={onClose} className="w-full mt-6 py-3 bg-blue-600 text-white rounded-xl font-bold">明白！</button>
-                </div>
-            </div>
-        );
-
         // --- SECTIONS ---
 
         const getItineraryData = (lang) => [
@@ -416,14 +429,14 @@
                 ], note: lang === 'zh' ? "今日舟車勞頓，食完宵夜早啲休息。" : "Long travel day. Rest early."
             },
             {
-                day: "DAY 02", date: lang === 'zh' ? "2月15日 (日)" : "Feb 15 (Sun)", title: lang === 'zh' ? "江南 & 汗蒸幕" : "Gangnam & Spa", highlights: [
+                day: "DAY 02", date: lang === 'zh' ? "2月15日 (日)" : "Feb 15 (Sun)", title: lang === 'zh' ? "江南 & 岩盤浴" : "Gangnam & Bedrock Bath", highlights: [
                     { time: "10:00", place: lang === 'zh' ? "星空圖書館" : "Starfield Library", desc: lang === 'zh' ? "COEX Mall 打卡 (三成站)。" : "COEX Mall photo spot.", mapTerm: "Starfield Library", korean: "별마당 도서관", tags: ["Photo"], bookingType: "free" },
                     { time: "12:30", place: lang === 'zh' ? "午餐: 黑虎狼" : "Lunch: Heukhorang", desc: lang === 'zh' ? "墨西哥風味碳烤雞腿。" : "Mexican Chicken.", korean: "흑호랑", tags: ["Food"], bookingType: "queue" },
                     { time: "13:30", place: lang === 'zh' ? "Seoul Sky" : "Seoul Sky", desc: lang === 'zh' ? "樂天塔高空景觀 (蠶室站)。" : "Lotte Tower View.", mapTerm: "Lotte World Tower", korean: "서울스카이", tags: ["View"], bookingType: "book", highlight: true },
-                    { time: "18:00", place: lang === 'zh' ? "Dragon Hill Spa" : "Dragon Hill Spa", desc: lang === 'zh' ? "龍山站汗蒸幕體驗 (備案: Siloam)。" : "Jjimjilbang at Yongsan.", mapTerm: "Dragon Hill Spa", korean: "드래곤힐스파", tags: ["Relax"], bookingType: "walk-in" },
+                    { time: "18:00", place: lang === 'zh' ? "免疫工房 (明洞)" : "Immune Gongbang", desc: lang === 'zh' ? "主打岩盤浴排毒，消除疲勞。" : "Bedrock bath detox therapy.", mapTerm: "Immune Gongbang Myeongdong", korean: "면역공방 명동점", tags: ["Relax", "Detox"], bookingType: "book" },
                     { time: "20:30", place: lang === 'zh' ? "荒謬的生肉" : "Ungteori BBQ", desc: lang === 'zh' ? "明洞無限任食五花肉。" : "AYCE Pork Belly Myeongdong.", mapTerm: "Ungteori Saenggogi Myeongdong", korean: "엉터리생고기 명동점", tags: ["Food"] },
                     { time: "22:00", place: lang === 'zh' ? "Olive Young/CU" : "Olive Young/CU", desc: lang === 'zh' ? "買 Mask 試用。" : "Buy masks.", tags: ["Shop"] }
-                ]
+                ], note: lang === 'zh' ? "免疫工房需預約。行完樂天塔去岩盤浴最舒服！" : "Immune Gongbang needs booking. Relax after Lotte Tower!"
             },
             {
                 day: "DAY 03", date: lang === 'zh' ? "2月16日 (一)" : "Feb 16 (Mon)", title: lang === 'zh' ? "韓服 & 景福宮" : "Hanbok & Palace", highlights: [
@@ -572,21 +585,19 @@
         const PrepSection = ({ checkedItems, toggleCheck, isPrint, lang }) => (
             <>
                 <div className={`flex gap-4 mb-8 overflow-x-auto no-scrollbar pb-2 no-print ${isPrint ? 'hidden' : ''}`}>
-                    <div className="bg-black text-white p-5 rounded-2xl min-w-[140px] flex flex-col justify-between h-32 shadow-lg">
-                        <div className="flex flex-col justify-between h-full">
-                            <Thermometer className="text-blue-400" />
-                            <div>
-                                <div className="text-3xl font-black">-5°C</div>
-                                <div className="text-[10px] font-bold text-gray-400 uppercase">{dictionary[lang].avgTemp}</div>
-                            </div>
-                        </div>
-                    </div>
                     <div className="bg-white p-5 rounded-2xl min-w-[140px] flex flex-col justify-between h-32 border border-gray-100 shadow-sm">
                         <Plug className="text-yellow-500" />
                         <div>
                             <div className="text-xl font-black">Type F</div>
                             <div className="text-[10px] font-bold text-gray-400 uppercase">{dictionary[lang].plugType}</div>
                         </div>
+                    </div>
+                    <div className="bg-white p-5 rounded-2xl min-w-[140px] flex flex-col justify-between h-32 border border-gray-100 shadow-sm">
+                         <Thermometer className="text-blue-400" />
+                         <div>
+                            <div className="text-3xl font-black">-5°C</div>
+                            <div className="text-[10px] font-bold text-gray-400 uppercase">{dictionary[lang].avgTemp}</div>
+                         </div>
                     </div>
                 </div>
                 <ChecklistGroup title={dictionary[lang].checklistData.docs.title} items={dictionary[lang].checklistData.docs.items} color="blue" category="docs" checkedItems={checkedItems || {}} onToggle={toggleCheck} />
@@ -689,7 +700,7 @@
                         {showKorean && <KoreanOverlay koreanText={showKorean.kr} name={showKorean.name} subText={showKorean.subText} onClose={() => setShowKorean(null)} lang={lang} />}
                         {showInstallModal && <InstallModal platform={showInstallModal} onClose={() => setShowInstallModal(false)} />}
 
-                        <header className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md border-b border-gray-200/50 py-3' : 'bg-transparent py-5'}`}>
+                        <header className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md border-b border-gray-200/50' : 'bg-transparent'} pt-[max(env(safe-area-inset-top),1.5rem)] pb-3`}>
                             <div className="max-w-3xl mx-auto px-5 flex justify-between items-center">
                                 <div onClick={scrollTop} className="cursor-pointer">
                                     <h1 className={`font-black text-gray-900 tracking-tight leading-none transition-all ${scrolled ? 'text-lg' : 'text-2xl'}`}>{dictionary[lang].appTitle} <span className="text-blue-600">.</span></h1>
@@ -704,7 +715,7 @@
                             </div>
                         </header>
 
-                        <main className="max-w-3xl mx-auto px-5 pt-24">
+                        <main className="max-w-3xl mx-auto px-5 pt-32">
                             {!scrolled && activeTab === 'itinerary' && (
                                 <div className="mb-10 animate-scale-in">
                                     <div className="aspect-[2/1] rounded-[32px] bg-black relative overflow-hidden shadow-2xl">
